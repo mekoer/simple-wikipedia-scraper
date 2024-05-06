@@ -1,6 +1,5 @@
 import requests
 import re
-from tkinter import Tk
 from bs4 import BeautifulSoup
 
 def retrieve_article_text(url):
@@ -18,8 +17,6 @@ def retrieve_article_text(url):
                 par_text = re.sub(r'\[[a-z]+\]', '', par_text)
                 print(par_text)
 
-def is_list_element(tag):
-    return tag.name == "div" and re.match()
 
 def retrieve_article_sources(url):
     response = requests.get(url)
@@ -42,27 +39,40 @@ def retrieve_article_sources(url):
                 print(f'{counter}. error')
                 counter += 1
                 continue
-        #article_text = re.sub(r'\[[0-9]+\]', '', article_text)
-        #article_text = re.sub(r'\[[a-z]+\]', '', article_text)
 
         
 
 running = True
 while running:
-    #command = input()
-    #command = command.split(' ')
+    searchterm = 'objective oriented programming'
+    searchterm = searchterm.replace(' ', '+')
 
-    #article_search_term = command[1]
-    #article_search_term.replace(' ', '_')
-    url = 'https://en.wikipedia.org/wiki/Danube'
-    retrieve_article_sources(url)
+    search_url = f'https://en.wikipedia.org/w/index.php?search={searchterm}'
 
+    results_page = requests.get(search_url)
 
+    if results_page.status_code == 200:
+        parsed_res_page = BeautifulSoup(results_page.content, 'html.parser')
+        
+        res_list = parsed_res_page.find("div", {"class":"mw-search-results-container"}).find("ul").findAll("li")
+
+        links = []
+        results = []
+
+        for res in res_list:
+            links.append(res.find('a').get('href'))
+            results.append(res.find('a').get('title'))
+
+    counter = 0
+    for result in results:
+        print(result)
+        print(f'https://en.wikipedia.org/wiki/{links[counter]}')
+        print('\n')
+        counter += 1
 
     running = False
+    # url = 'https://en.wikipedia.org/wiki/Danube'
+    # retrieve_article_text(url)
 
-    #if command[0] == 'text':
-     #   retrieve_article_text(url)
-    #if command[0] == 'sources':
-     #   retrieve_article_sources(url)
+    
 
