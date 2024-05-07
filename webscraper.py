@@ -40,12 +40,12 @@ def retrieve_article_sources(url):
                 counter += 1
                 continue
 
-        
-
-running = True
-while running:
-    searchterm = 'objective oriented programming'
-    searchterm = searchterm.replace(' ', '+')
+# if the searched term leads directly to an article, returns the url of the article, otherwise prints a list of search results
+# the user chooses from the results, the chosen url is returned
+# term: the search term
+# return: an url, to be passed to one of the retrieve functions
+def search(term):
+    searchterm = term.replace(' ', '+')
 
     search_url = f'https://en.wikipedia.org/w/index.php?search={searchterm}'
 
@@ -53,26 +53,50 @@ while running:
 
     if results_page.status_code == 200:
         parsed_res_page = BeautifulSoup(results_page.content, 'html.parser')
+
+        type_of_result = parsed_res_page.find('title')
+        if 'Search results' not in type_of_result.getText():
+            print('article found')
+            return search_url
         
         res_list = parsed_res_page.find("div", {"class":"mw-search-results-container"}).find("ul").findAll("li")
 
-        links = []
         results = []
+        links = []
 
         for res in res_list:
-            links.append(res.find('a').get('href'))
-            results.append(res.find('a').get('title'))
+            link = res.find('a').get('href')
+            result = res.find('a').get('title')
 
-    counter = 0
-    for result in results:
-        print(result)
-        print(f'https://en.wikipedia.org/wiki/{links[counter]}')
-        print('\n')
-        counter += 1
+            results.append(result)
+            links.append(f'https://en.wikipedia.org{link}')
 
-    running = False
-    # url = 'https://en.wikipedia.org/wiki/Danube'
-    # retrieve_article_text(url)
+        counter = 0
+        for result in results:
+            print(f'{counter}. {result}')
+            print(links[counter])
+            print('\n')
+            counter += 1
 
-    
+        #print(results)
+        
 
+        while True:
+            try:
+                numinp = input('select a number from the listed entries: ')
+                link = links[int(numinp)]
+                return link
+            except ValueError:
+                print('invcalid input')
+
+running = True
+while running:
+    searchterm = input('what do you want to search for?\n')
+
+    url = search(searchterm)
+
+    mode = input('sources or text?\n')
+    if mode == 'sources':
+        retrieve_article_sources(url)
+    else:
+        retrieve_article_text(url)
